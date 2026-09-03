@@ -1,0 +1,19 @@
+[
+  {
+    "pedido_id": "P001",
+    "cliente_id": "C101",
+    "data": "2023-01-15",
+    "itens": [
+      {"produto": "Laptop", "quantidade": 1, "valor_unitario": 1200.50},
+      {"produto": "Mouse", "quantidade": 1, "valor_unitario": 25.00}
+    ]
+  },
+  {
+    "pedido_id": "P002",
+    "cliente_id": "C102",
+    "data": "2023-01-16",
+    "itens": [
+      {"produto": "Teclado", "quantidade": 1, "valor_unitario": 75.99}
+    ]
+  }
+]
