@@ -1,0 +1,14 @@
+version: '3.8'
+services:
+postgres_db:
+image: postgres:18
+environment:
+POSTGRES_USER: superset_user
+POSTGRES_PASSWORD: superset_password
+POSTGRES_DB: superset_data
+ports:
+- "5433:5432"
+volumes:
+- pgdata:/var/lib/postgresql/data
+volumes:
+pgdata:

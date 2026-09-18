@@ -1,0 +1,44 @@
+[
+{
+"produto_id": 1,
+"cliente_id": "C101",
+"avaliacao": 5,
+"comentario": "Excelente smartphone, câmera incrível!"
+},
+{
+"produto_id": 1,
+"cliente_id": "C102",
+"avaliacao": 4,
+"comentario": "Muito bom, mas a bateria poderia durar mais."
+},
+{
+"produto_id": 2,
+"cliente_id": "C103",
+"avaliacao": 5,
+"comentario": "O melhor laptop gamer que já tive, roda tudo no máximo."
+},
+{
+"produto_id": 3,
+"cliente_id": "C104",
+"avaliacao": 3,
+"comentario": "O som é bom, mas o encaixe na orelha não é perfeito."
+},
+{
+"produto_id": 4,
+"cliente_id": "C105",
+"avaliacao": 5,
+"comentario": "Imagem fantástica, vale cada centavo!"
+},
+{
+"produto_id": 7,
+"cliente_id": "C106",
+"avaliacao": 4,
+"comentario": "Mouse confortável e preciso, boa compra."
+},
+{
+"produto_id": 7,
+"cliente_id": "C107",
+"avaliacao": 2,
+"comentario": "Parou de funcionar em 2 meses, decepcionado."
+}
+]
