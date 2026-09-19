@@ -1,0 +1,8 @@
+TIMESTAMP,STATION,TEMPERATURE_C,HUMIDITY_PCT,WIND_KMH,SOURCE,MISSING_PCT,CONSTANT_TEMP_4H,MOTIVO_QUARENTENA
+2026-09-18T02:00:00,Rio de Janeiro,,,16.0,fonte_2_weather.csv,66.67,N,missing_above_30_percent
+2026-09-18T03:00:00,Rio de Janeiro,,,17.0,fonte_2_weather.csv,66.67,N,missing_above_30_percent
+2026-09-18T00:00:00,Sao Paulo,20.0,72.0,11.0,fonte_1_estacao.csv,0.00,Y,constant_temperature_over_4_hours
+2026-09-18T01:00:00,Sao Paulo,20.0,73.0,10.0,fonte_1_estacao.csv,0.00,Y,constant_temperature_over_4_hours
+2026-09-18T02:00:00,Sao Paulo,20.0,74.0,10.0,fonte_1_estacao.csv,0.00,Y,constant_temperature_over_4_hours
+2026-09-18T03:00:00,Sao Paulo,20.0,75.0,9.0,fonte_1_estacao.csv,0.00,Y,constant_temperature_over_4_hours
+2026-09-18T04:00:00,Sao Paulo,20.0,76.0,9.0,fonte_1_estacao.csv,0.00,Y,constant_temperature_over_4_hours

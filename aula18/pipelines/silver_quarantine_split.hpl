@@ -1,0 +1,833 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<pipeline>
+  <info>
+    <name>silver_quarantine_split</name>
+    <name_sync_with_filename>Y</name_sync_with_filename>
+    <description>Le a camada bronze, aplica as duas regras de qualidade (mais de 30% dos campos meteorologicos faltando; temperatura igual por mais de 4 horas seguidas na mesma estacao) e separa cada registro em silver (aprovado) ou quarentena (rejeitado, com o motivo).</description>
+    <extended_description/>
+    <pipeline_version/>
+    <pipeline_type>Normal</pipeline_type>
+    <pipeline_status>0</pipeline_status>
+    <parameters>
+      <parameter>
+        <name>BRONZE_DIR</name>
+        <default_value>${PROJECT_HOME}/repository/bronze</default_value>
+        <description>Pasta de entrada (camada bronze)</description>
+      </parameter>
+      <parameter>
+        <name>SILVER_DIR</name>
+        <default_value>${PROJECT_HOME}/repository/silver</default_value>
+        <description>Pasta de saida da camada silver (registros aprovados)</description>
+      </parameter>
+      <parameter>
+        <name>QUARANTINE_DIR</name>
+        <default_value>${PROJECT_HOME}/repository/quarantine</default_value>
+        <description>Pasta de saida da quarentena (registros rejeitados + motivo)</description>
+      </parameter>
+    </parameters>
+    <capture_transform_performance>N</capture_transform_performance>
+    <transform_performance_capturing_delay>1000</transform_performance_capturing_delay>
+    <transform_performance_capturing_size_limit>100</transform_performance_capturing_size_limit>
+    <created_user>-</created_user>
+    <created_date>2026/09/18 00:00:00.000</created_date>
+    <modified_user>-</modified_user>
+    <modified_date>2026/09/18 00:00:00.000</modified_date>
+  </info>
+  <notepads>
+    <notepad>
+      <backgroundcolorblue>251</backgroundcolorblue>
+      <backgroundcolorgreen>232</backgroundcolorgreen>
+      <backgroundcolorred>201</backgroundcolorred>
+      <bordercolorblue>90</bordercolorblue>
+      <bordercolorgreen>58</bordercolorgreen>
+      <bordercolorred>14</bordercolorred>
+      <fontbold>N</fontbold>
+      <fontcolorblue>90</fontcolorblue>
+      <fontcolorgreen>58</fontcolorgreen>
+      <fontcolorred>14</fontcolorred>
+      <fontitalic>N</fontitalic>
+      <fontname>Noto Sans</fontname>
+      <fontsize>10</fontsize>
+      <height>120</height>
+      <xloc>32</xloc>
+      <yloc>16</yloc>
+      <note>"avaliar qualidade" precisa dos dados ja ordenados por estacao e hora (passo anterior) para
+detectar sequencias de temperatura constante. Ele calcula MISSING_PCT e CONSTANT_TEMP_4H e monta
+MOTIVO_QUARENTENA (vazio = aprovado). Os dois passos seguintes sao filtros: um deixa passar so quem
+NAO tem motivo (silver), o outro so quem TEM motivo (quarentena) e tambem grava no log (nivel WARN)
+cada linha quarentenada - esse e o "registro de erros e problemas" pedido na atividade.</note>
+      <width>820</width>
+    </notepad>
+  </notepads>
+  <order>
+    <hop>
+      <from>ler bronze</from>
+      <to>ordenar por estacao e hora</to>
+      <enabled>Y</enabled>
+    </hop>
+    <hop>
+      <from>ordenar por estacao e hora</from>
+      <to>avaliar qualidade</to>
+      <enabled>Y</enabled>
+    </hop>
+    <hop>
+      <from>avaliar qualidade</from>
+      <to>filtrar silver</to>
+      <enabled>Y</enabled>
+    </hop>
+    <hop>
+      <from>avaliar qualidade</from>
+      <to>filtrar quarentena</to>
+      <enabled>Y</enabled>
+    </hop>
+    <hop>
+      <from>filtrar silver</from>
+      <to>colunas silver</to>
+      <enabled>Y</enabled>
+    </hop>
+    <hop>
+      <from>colunas silver</from>
+      <to>gravar silver</to>
+      <enabled>Y</enabled>
+    </hop>
+    <hop>
+      <from>filtrar quarentena</from>
+      <to>gravar quarentena</to>
+      <enabled>Y</enabled>
+    </hop>
+  </order>
+  <transform>
+    <name>ler bronze</name>
+    <type>CSVInput</type>
+    <description/>
+    <distribute>Y</distribute>
+    <custom_distribution/>
+    <copies>1</copies>
+    <partitioning>
+      <method>none</method>
+      <schema_name/>
+    </partitioning>
+    <filename>${BRONZE_DIR}/meteorologia_bronze.csv</filename>
+    <filename_field/>
+    <rownum_field/>
+    <include_filename>N</include_filename>
+    <separator>,</separator>
+    <enclosure>"</enclosure>
+    <header>Y</header>
+    <buffer_size>50000</buffer_size>
+    <lazy_conversion>N</lazy_conversion>
+    <add_filename_result>N</add_filename_result>
+    <parallel>N</parallel>
+    <newline_possible>N</newline_possible>
+    <encoding>UTF-8</encoding>
+    <fields>
+      <field>
+        <name>TIMESTAMP</name>
+        <type>Date</type>
+        <format>yyyy-MM-dd'T'HH:mm:ss</format>
+        <currency/>
+        <decimal>.</decimal>
+        <group/>
+        <length>-1</length>
+        <precision>-1</precision>
+        <trim_type>both</trim_type>
+      </field>
+      <field>
+        <name>STATION</name>
+        <type>String</type>
+        <format></format>
+        <currency/>
+        <decimal>.</decimal>
+        <group/>
+        <length>-1</length>
+        <precision>-1</precision>
+        <trim_type>both</trim_type>
+      </field>
+      <field>
+        <name>TEMPERATURE_C</name>
+        <type>Number</type>
+        <format>0.0</format>
+        <currency/>
+        <decimal>.</decimal>
+        <group/>
+        <length>-1</length>
+        <precision>-1</precision>
+        <trim_type>both</trim_type>
+      </field>
+      <field>
+        <name>HUMIDITY_PCT</name>
+        <type>Number</type>
+        <format>0.0</format>
+        <currency/>
+        <decimal>.</decimal>
+        <group/>
+        <length>-1</length>
+        <precision>-1</precision>
+        <trim_type>both</trim_type>
+      </field>
+      <field>
+        <name>WIND_KMH</name>
+        <type>Number</type>
+        <format>0.0</format>
+        <currency/>
+        <decimal>.</decimal>
+        <group/>
+        <length>-1</length>
+        <precision>-1</precision>
+        <trim_type>both</trim_type>
+      </field>
+      <field>
+        <name>SOURCE</name>
+        <type>String</type>
+        <format></format>
+        <currency/>
+        <decimal>.</decimal>
+        <group/>
+        <length>-1</length>
+        <precision>-1</precision>
+        <trim_type>both</trim_type>
+      </field>
+    </fields>
+    <attributes/>
+    <GUI>
+      <xloc>48</xloc>
+      <yloc>160</yloc>
+    </GUI>
+  </transform>
+  <transform>
+    <name>ordenar por estacao e hora</name>
+    <type>SortRows</type>
+    <description>Necessario para a regra de temperatura constante: precisa ver as leituras de cada estacao em ordem cronologica e seguida</description>
+    <distribute>Y</distribute>
+    <custom_distribution/>
+    <copies>1</copies>
+    <partitioning>
+      <method>none</method>
+      <schema_name/>
+    </partitioning>
+    <directory>%%java.io.tmpdir%%</directory>
+    <prefix>srt</prefix>
+    <sort_size/>
+    <free_memory_limit/>
+    <compress>N</compress>
+    <compress_variable/>
+    <unique_rows>N</unique_rows>
+    <fields>
+      <field>
+        <name>STATION</name>
+        <ascending>Y</ascending>
+        <case_sensitive>N</case_sensitive>
+        <collator_enabled>N</collator_enabled>
+        <collator_strength>0</collator_strength>
+        <presorted>N</presorted>
+      </field>
+      <field>
+        <name>TIMESTAMP</name>
+        <ascending>Y</ascending>
+        <case_sensitive>N</case_sensitive>
+        <collator_enabled>N</collator_enabled>
+        <collator_strength>0</collator_strength>
+        <presorted>N</presorted>
+      </field>
+    </fields>
+    <attributes/>
+    <GUI>
+      <xloc>224</xloc>
+      <yloc>160</yloc>
+    </GUI>
+  </transform>
+  <transform>
+    <name>avaliar qualidade</name>
+    <type>UserDefinedJavaClass</type>
+    <description>Calcula MISSING_PCT (percentual de temperatura/umidade/vento faltando) e CONSTANT_TEMP_4H (Y/N: mesma temperatura por 5+ leituras horarias seguidas = mais de 4h) e monta MOTIVO_QUARENTENA. Requer entrada ja ordenada por STATION, TIMESTAMP.</description>
+    <distribute>N</distribute>
+    <custom_distribution/>
+    <copies>1</copies>
+    <partitioning>
+      <method>none</method>
+      <schema_name/>
+    </partitioning>
+    <fields>
+      <field>
+        <field_name>MISSING_PCT</field_name>
+        <field_type>Number</field_type>
+        <field_length>-1</field_length>
+        <field_precision>2</field_precision>
+      </field>
+      <field>
+        <field_name>CONSTANT_TEMP_4H</field_name>
+        <field_type>String</field_type>
+        <field_length>-1</field_length>
+        <field_precision>-1</field_precision>
+      </field>
+      <field>
+        <field_name>MOTIVO_QUARENTENA</field_name>
+        <field_type>String</field_type>
+        <field_length>-1</field_length>
+        <field_precision>-1</field_precision>
+      </field>
+    </fields>
+    <definitions>
+      <definition>
+        <class_type>TRANSFORM_CLASS</class_type>
+        <class_name>Processor</class_name>
+        <class_source><![CDATA[
+import java.util.ArrayList;
+import java.util.List;
+
+private List<Object[]> runBuffer = new ArrayList<Object[]>();
+private List<Double> runMissingPct = new ArrayList<Double>();
+private String runStation = null;
+private Double runTemp = null;
+private java.util.Date runLastTimestamp = null;
+
+private int idxStation;
+private int idxTimestamp;
+private int idxTemp;
+private int idxHumidity;
+private int idxWind;
+private int outBase;
+
+public boolean processRow() throws HopException {
+  Object[] r = getRow();
+  if (r == null) {
+    flushRun();
+    setOutputDone();
+    return false;
+  }
+
+  if (first) {
+    first = false;
+    idxStation = getInputRowMeta().indexOfValue("STATION");
+    idxTimestamp = getInputRowMeta().indexOfValue("TIMESTAMP");
+    idxTemp = getInputRowMeta().indexOfValue("TEMPERATURE_C");
+    idxHumidity = getInputRowMeta().indexOfValue("HUMIDITY_PCT");
+    idxWind = getInputRowMeta().indexOfValue("WIND_KMH");
+    outBase = getInputRowMeta().size();
+  }
+
+  String station = getInputRowMeta().getString(r, idxStation);
+  java.util.Date timestamp = getInputRowMeta().getDate(r, idxTimestamp);
+  Double temperature = getInputRowMeta().getNumber(r, idxTemp);
+  Double humidity = getInputRowMeta().getNumber(r, idxHumidity);
+  Double wind = getInputRowMeta().getNumber(r, idxWind);
+
+  int missingCount = 0;
+  if (temperature == null) missingCount++;
+  if (humidity == null) missingCount++;
+  if (wind == null) missingCount++;
+  double missingPct = (missingCount / 3.0) * 100.0;
+
+  Object[] outputRow = createOutputRow(r, data.outputRowMeta.size());
+  outputRow[outBase] = new Double(missingPct);
+
+  boolean continuesRun = runStation != null
+      && runStation.equals(station)
+      && temperature != null
+      && runTemp != null
+      && runTemp.doubleValue() == temperature.doubleValue()
+      && runLastTimestamp != null
+      && timestamp != null
+      && (timestamp.getTime() - runLastTimestamp.getTime()) == 3600000L;
+
+  if (continuesRun) {
+    runBuffer.add(outputRow);
+    runMissingPct.add(new Double(missingPct));
+    runLastTimestamp = timestamp;
+  } else {
+    flushRun();
+    if (temperature != null && timestamp != null) {
+      runBuffer.add(outputRow);
+      runMissingPct.add(new Double(missingPct));
+      runStation = station;
+      runTemp = temperature;
+      runLastTimestamp = timestamp;
+    } else {
+      runStation = null;
+      runTemp = null;
+      runLastTimestamp = null;
+      finishRow(outputRow, missingPct, false);
+    }
+  }
+  return true;
+}
+
+private void flushRun() throws HopException {
+  if (runBuffer.isEmpty()) {
+    return;
+  }
+  boolean flagged = runBuffer.size() > 4;
+  for (int i = 0; i < runBuffer.size(); i++) {
+    finishRow((Object[]) runBuffer.get(i), ((Double) runMissingPct.get(i)).doubleValue(), flagged);
+  }
+  runBuffer.clear();
+  runMissingPct.clear();
+  runStation = null;
+  runTemp = null;
+  runLastTimestamp = null;
+}
+
+private void finishRow(Object[] outputRow, double missingPct, boolean constantTemp) throws HopException {
+  outputRow[outBase + 1] = constantTemp ? "Y" : "N";
+  StringBuilder motivo = new StringBuilder();
+  if (missingPct > 30.0) {
+    motivo.append("missing_above_30_percent");
+  }
+  if (constantTemp) {
+    if (motivo.length() > 0) {
+      motivo.append(";");
+    }
+    motivo.append("constant_temperature_over_4_hours");
+  }
+  outputRow[outBase + 2] = motivo.toString();
+  putRow(data.outputRowMeta, outputRow);
+}
+]]></class_source>
+      </definition>
+    </definitions>
+    <info_transforms>
+</info_transforms>
+    <target_transforms>
+</target_transforms>
+    <usage_parameters>
+</usage_parameters>
+    <clear_result_fields>N</clear_result_fields>
+    <attributes/>
+    <GUI>
+      <xloc>400</xloc>
+      <yloc>160</yloc>
+    </GUI>
+  </transform>
+  <transform>
+    <name>filtrar silver</name>
+    <type>UserDefinedJavaClass</type>
+    <description>So deixa passar linhas sem motivo de quarentena (MOTIVO_QUARENTENA vazio)</description>
+    <distribute>Y</distribute>
+    <custom_distribution/>
+    <copies>1</copies>
+    <partitioning>
+      <method>none</method>
+      <schema_name/>
+    </partitioning>
+    <fields>
+</fields>
+    <definitions>
+      <definition>
+        <class_type>TRANSFORM_CLASS</class_type>
+        <class_name>Processor</class_name>
+        <class_source><![CDATA[
+private int idxMotivo;
+
+public boolean processRow() throws HopException {
+  Object[] r = getRow();
+  if (r == null) {
+    setOutputDone();
+    return false;
+  }
+  if (first) {
+    first = false;
+    idxMotivo = getInputRowMeta().indexOfValue("MOTIVO_QUARENTENA");
+  }
+  String motivo = getInputRowMeta().getString(r, idxMotivo);
+  boolean quarentena = motivo != null && motivo.length() > 0;
+  if (!quarentena) {
+    putRow(getInputRowMeta(), r);
+  }
+  return true;
+}
+]]></class_source>
+      </definition>
+    </definitions>
+    <info_transforms>
+</info_transforms>
+    <target_transforms>
+</target_transforms>
+    <usage_parameters>
+</usage_parameters>
+    <clear_result_fields>N</clear_result_fields>
+    <attributes/>
+    <GUI>
+      <xloc>592</xloc>
+      <yloc>80</yloc>
+    </GUI>
+  </transform>
+  <transform>
+    <name>filtrar quarentena</name>
+    <type>UserDefinedJavaClass</type>
+    <description>So deixa passar linhas com motivo de quarentena preenchido, e registra cada uma no log da pipeline (nivel WARN)</description>
+    <distribute>Y</distribute>
+    <custom_distribution/>
+    <copies>1</copies>
+    <partitioning>
+      <method>none</method>
+      <schema_name/>
+    </partitioning>
+    <fields>
+</fields>
+    <definitions>
+      <definition>
+        <class_type>TRANSFORM_CLASS</class_type>
+        <class_name>Processor</class_name>
+        <class_source><![CDATA[
+private int idxMotivo;
+private int idxStation;
+private int idxTimestamp;
+
+public boolean processRow() throws HopException {
+  Object[] r = getRow();
+  if (r == null) {
+    setOutputDone();
+    return false;
+  }
+  if (first) {
+    first = false;
+    idxMotivo = getInputRowMeta().indexOfValue("MOTIVO_QUARENTENA");
+    idxStation = getInputRowMeta().indexOfValue("STATION");
+    idxTimestamp = getInputRowMeta().indexOfValue("TIMESTAMP");
+  }
+  String motivo = getInputRowMeta().getString(r, idxMotivo);
+  boolean quarentena = motivo != null && motivo.length() > 0;
+  if (quarentena) {
+    String estacao = getInputRowMeta().getString(r, idxStation);
+    java.util.Date timestamp = getInputRowMeta().getDate(r, idxTimestamp);
+    logBasic("record_quarantined estacao=" + estacao + " timestamp=" + timestamp + " motivo=" + motivo);
+    putRow(getInputRowMeta(), r);
+  }
+  return true;
+}
+]]></class_source>
+      </definition>
+    </definitions>
+    <info_transforms>
+</info_transforms>
+    <target_transforms>
+</target_transforms>
+    <usage_parameters>
+</usage_parameters>
+    <clear_result_fields>N</clear_result_fields>
+    <attributes/>
+    <GUI>
+      <xloc>592</xloc>
+      <yloc>240</yloc>
+    </GUI>
+  </transform>
+  <transform>
+    <name>colunas silver</name>
+    <type>SelectValues</type>
+    <description>Descarta as colunas auxiliares de qualidade (MISSING_PCT, CONSTANT_TEMP_4H, MOTIVO_QUARENTENA) antes de gravar a silver</description>
+    <distribute>Y</distribute>
+    <custom_distribution/>
+    <copies>1</copies>
+    <partitioning>
+      <method>none</method>
+      <schema_name/>
+    </partitioning>
+    <fields>
+      <field>
+        <name>TIMESTAMP</name>
+      </field>
+      <field>
+        <name>STATION</name>
+      </field>
+      <field>
+        <name>TEMPERATURE_C</name>
+      </field>
+      <field>
+        <name>HUMIDITY_PCT</name>
+      </field>
+      <field>
+        <name>WIND_KMH</name>
+      </field>
+      <field>
+        <name>SOURCE</name>
+      </field>
+      <select_unspecified>N</select_unspecified>
+    </fields>
+    <attributes/>
+    <GUI>
+      <xloc>768</xloc>
+      <yloc>80</yloc>
+    </GUI>
+  </transform>
+  <transform>
+    <name>gravar silver</name>
+    <type>TextFileOutput</type>
+    <description/>
+    <distribute>Y</distribute>
+    <custom_distribution/>
+    <copies>1</copies>
+    <partitioning>
+      <method>none</method>
+      <schema_name/>
+    </partitioning>
+    <separator>,</separator>
+    <enclosure>"</enclosure>
+    <enclosure_forced>N</enclosure_forced>
+    <enclosure_fix_disabled>N</enclosure_fix_disabled>
+    <header>Y</header>
+    <footer>N</footer>
+    <format>Unix</format>
+    <compression>None</compression>
+    <encoding>UTF-8</encoding>
+    <endedLine/>
+    <fileNameInField>N</fileNameInField>
+    <fileNameField/>
+    <create_parent_folder>Y</create_parent_folder>
+    <file>
+      <name>${SILVER_DIR}/meteorologia_silver</name>
+      <servlet_output>N</servlet_output>
+      <do_not_open_new_file_init>N</do_not_open_new_file_init>
+      <extention>csv</extention>
+      <append>N</append>
+      <split>N</split>
+      <haspartno>N</haspartno>
+      <add_date>N</add_date>
+      <add_time>N</add_time>
+      <SpecifyFormat>N</SpecifyFormat>
+      <date_time_format/>
+      <add_to_result_filenames>Y</add_to_result_filenames>
+      <pad>N</pad>
+      <fast_dump>N</fast_dump>
+      <splitevery/>
+    </file>
+    <fields>
+      <field>
+        <name>TIMESTAMP</name>
+        <type>Date</type>
+        <format>yyyy-MM-dd'T'HH:mm:ss</format>
+        <currency/>
+        <decimal/>
+        <group/>
+        <nullif/>
+        <trim_type>both</trim_type>
+        <length>-1</length>
+        <precision>-1</precision>
+      </field>
+      <field>
+        <name>STATION</name>
+        <type>String</type>
+        <format/>
+        <currency/>
+        <decimal/>
+        <group/>
+        <nullif/>
+        <trim_type>both</trim_type>
+        <length>-1</length>
+        <precision>-1</precision>
+      </field>
+      <field>
+        <name>TEMPERATURE_C</name>
+        <type>Number</type>
+        <format>0.0</format>
+        <currency/>
+        <decimal>.</decimal>
+        <group/>
+        <nullif/>
+        <trim_type>both</trim_type>
+        <length>-1</length>
+        <precision>-1</precision>
+      </field>
+      <field>
+        <name>HUMIDITY_PCT</name>
+        <type>Number</type>
+        <format>0.0</format>
+        <currency/>
+        <decimal>.</decimal>
+        <group/>
+        <nullif/>
+        <trim_type>both</trim_type>
+        <length>-1</length>
+        <precision>-1</precision>
+      </field>
+      <field>
+        <name>WIND_KMH</name>
+        <type>Number</type>
+        <format>0.0</format>
+        <currency/>
+        <decimal>.</decimal>
+        <group/>
+        <nullif/>
+        <trim_type>both</trim_type>
+        <length>-1</length>
+        <precision>-1</precision>
+      </field>
+      <field>
+        <name>SOURCE</name>
+        <type>String</type>
+        <format/>
+        <currency/>
+        <decimal/>
+        <group/>
+        <nullif/>
+        <trim_type>both</trim_type>
+        <length>-1</length>
+        <precision>-1</precision>
+      </field>
+    </fields>
+    <attributes/>
+    <GUI>
+      <xloc>944</xloc>
+      <yloc>80</yloc>
+    </GUI>
+  </transform>
+  <transform>
+    <name>gravar quarentena</name>
+    <type>TextFileOutput</type>
+    <description/>
+    <distribute>Y</distribute>
+    <custom_distribution/>
+    <copies>1</copies>
+    <partitioning>
+      <method>none</method>
+      <schema_name/>
+    </partitioning>
+    <separator>,</separator>
+    <enclosure>"</enclosure>
+    <enclosure_forced>N</enclosure_forced>
+    <enclosure_fix_disabled>N</enclosure_fix_disabled>
+    <header>Y</header>
+    <footer>N</footer>
+    <format>Unix</format>
+    <compression>None</compression>
+    <encoding>UTF-8</encoding>
+    <endedLine/>
+    <fileNameInField>N</fileNameInField>
+    <fileNameField/>
+    <create_parent_folder>Y</create_parent_folder>
+    <file>
+      <name>${QUARANTINE_DIR}/meteorologia_quarentena</name>
+      <servlet_output>N</servlet_output>
+      <do_not_open_new_file_init>N</do_not_open_new_file_init>
+      <extention>csv</extention>
+      <append>N</append>
+      <split>N</split>
+      <haspartno>N</haspartno>
+      <add_date>N</add_date>
+      <add_time>N</add_time>
+      <SpecifyFormat>N</SpecifyFormat>
+      <date_time_format/>
+      <add_to_result_filenames>Y</add_to_result_filenames>
+      <pad>N</pad>
+      <fast_dump>N</fast_dump>
+      <splitevery/>
+    </file>
+    <fields>
+      <field>
+        <name>TIMESTAMP</name>
+        <type>Date</type>
+        <format>yyyy-MM-dd'T'HH:mm:ss</format>
+        <currency/>
+        <decimal/>
+        <group/>
+        <nullif/>
+        <trim_type>both</trim_type>
+        <length>-1</length>
+        <precision>-1</precision>
+      </field>
+      <field>
+        <name>STATION</name>
+        <type>String</type>
+        <format/>
+        <currency/>
+        <decimal/>
+        <group/>
+        <nullif/>
+        <trim_type>both</trim_type>
+        <length>-1</length>
+        <precision>-1</precision>
+      </field>
+      <field>
+        <name>TEMPERATURE_C</name>
+        <type>Number</type>
+        <format>0.0</format>
+        <currency/>
+        <decimal>.</decimal>
+        <group/>
+        <nullif/>
+        <trim_type>both</trim_type>
+        <length>-1</length>
+        <precision>-1</precision>
+      </field>
+      <field>
+        <name>HUMIDITY_PCT</name>
+        <type>Number</type>
+        <format>0.0</format>
+        <currency/>
+        <decimal>.</decimal>
+        <group/>
+        <nullif/>
+        <trim_type>both</trim_type>
+        <length>-1</length>
+        <precision>-1</precision>
+      </field>
+      <field>
+        <name>WIND_KMH</name>
+        <type>Number</type>
+        <format>0.0</format>
+        <currency/>
+        <decimal>.</decimal>
+        <group/>
+        <nullif/>
+        <trim_type>both</trim_type>
+        <length>-1</length>
+        <precision>-1</precision>
+      </field>
+      <field>
+        <name>SOURCE</name>
+        <type>String</type>
+        <format/>
+        <currency/>
+        <decimal/>
+        <group/>
+        <nullif/>
+        <trim_type>both</trim_type>
+        <length>-1</length>
+        <precision>-1</precision>
+      </field>
+      <field>
+        <name>MISSING_PCT</name>
+        <type>Number</type>
+        <format>0.00</format>
+        <currency/>
+        <decimal>.</decimal>
+        <group/>
+        <nullif/>
+        <trim_type>both</trim_type>
+        <length>-1</length>
+        <precision>-1</precision>
+      </field>
+      <field>
+        <name>CONSTANT_TEMP_4H</name>
+        <type>String</type>
+        <format/>
+        <currency/>
+        <decimal/>
+        <group/>
+        <nullif/>
+        <trim_type>both</trim_type>
+        <length>-1</length>
+        <precision>-1</precision>
+      </field>
+      <field>
+        <name>MOTIVO_QUARENTENA</name>
+        <type>String</type>
+        <format/>
+        <currency/>
+        <decimal/>
+        <group/>
+        <nullif/>
+        <trim_type>both</trim_type>
+        <length>-1</length>
+        <precision>-1</precision>
+      </field>
+    </fields>
+    <attributes/>
+    <GUI>
+      <xloc>944</xloc>
+      <yloc>240</yloc>
+    </GUI>
+  </transform>
+  <transform_error_handling>
+  </transform_error_handling>
+  <attributes/>
+</pipeline>

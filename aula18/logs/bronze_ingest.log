@@ -1,0 +1,13 @@
+2026/09/18 21:05:47 - ingestao bronze - Using run configuration [local]
+2026/09/18 21:05:47 - bronze_ingest - Executing this pipeline using the Local Pipeline Engine with run configuration 'local'
+2026/09/18 21:05:47 - bronze_ingest - Execution started for pipeline [bronze_ingest]
+2026/09/18 21:05:47 - ler fonte 2 weather.0 - Header row skipped in file '/home/ficdevia-15-noite/Área de trabalho/libia/dados_python/aula18/data/raw/fonte_2_weather.csv'
+2026/09/18 21:05:47 - ler fonte 1 estacao.0 - Header row skipped in file '/home/ficdevia-15-noite/Área de trabalho/libia/dados_python/aula18/data/raw/fonte_1_estacao.csv'
+2026/09/18 21:05:47 - ler fonte 1 estacao.0 - Finished processing (I=9, O=0, R=0, W=8, U=0, E=0)
+2026/09/18 21:05:47 - ler fonte 2 weather.0 - Finished processing (I=6, O=0, R=0, W=5, U=0, E=0)
+2026/09/18 21:05:47 - marcar origem fonte 1.0 - Finished processing (I=0, O=0, R=8, W=8, U=0, E=0)
+2026/09/18 21:05:47 - marcar origem fonte 2.0 - Finished processing (I=0, O=0, R=5, W=5, U=0, E=0)
+2026/09/18 21:05:47 - validar e registrar erros.0 - Finished processing (I=0, O=0, R=13, W=13, U=0, E=0)
+2026/09/18 21:05:47 - gravar bronze.0 - Finished processing (I=0, O=14, R=13, W=13, U=0, E=0)
+2026/09/18 21:05:47 - bronze_ingest - Pipeline duration : 0.217 seconds [  0.217" ]
+2026/09/18 21:05:47 - bronze_ingest - Execution finished on a local pipeline engine with run configuration 'local'

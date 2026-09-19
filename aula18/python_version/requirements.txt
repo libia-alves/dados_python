@@ -1,0 +1,1 @@
+# Sem dependencias externas: o pipeline usa apenas a biblioteca padrao do Python.

@@ -1,0 +1,10 @@
+{
+  "engineRunConfiguration": {
+    "Local": {
+      "safe_mode": false
+    }
+  },
+  "name": "local",
+  "description": "Execucao local (motor embutido do Hop)",
+  "defaultSelection": true
+}

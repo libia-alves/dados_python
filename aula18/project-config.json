@@ -1,0 +1,30 @@
+{
+  "metadataBaseFolder" : "${PROJECT_HOME}/metadata",
+  "unitTestsBasePath" : "${PROJECT_HOME}",
+  "dataSetsCsvFolder" : "${PROJECT_HOME}/datasets",
+  "enforcingExecutionInHome" : false,
+  "parentProjectName" : "default",
+  "config" : {
+    "variables" : [ {
+      "name" : "RAW_DIR",
+      "value" : "${PROJECT_HOME}/data/raw",
+      "description" : "Pasta das fontes brutas (CSV). Redefina em outro Projeto/Environment do Hop para apontar a outro local por ambiente."
+    }, {
+      "name" : "BRONZE_DIR",
+      "value" : "${PROJECT_HOME}/repository/bronze",
+      "description" : "Pasta da camada bronze (todos os registros normalizados, sem filtro de qualidade)."
+    }, {
+      "name" : "SILVER_DIR",
+      "value" : "${PROJECT_HOME}/repository/silver",
+      "description" : "Pasta da camada silver (somente registros aprovados nas regras de qualidade)."
+    }, {
+      "name" : "QUARANTINE_DIR",
+      "value" : "${PROJECT_HOME}/repository/quarantine",
+      "description" : "Pasta de quarentena (registros rejeitados e o motivo da rejeicao)."
+    }, {
+      "name" : "LOG_DIR",
+      "value" : "${PROJECT_HOME}/logs",
+      "description" : "Pasta dos arquivos de log gerados pelas execucoes do workflow (registro de erros e problemas)."
+    } ]
+  }
+}

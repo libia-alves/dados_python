@@ -1,0 +1,21 @@
+2026/09/18 21:05:48 - checar qualidade e separar silver e quarentena - Using run configuration [local]
+2026/09/18 21:05:48 - silver_quarantine_split - Executing this pipeline using the Local Pipeline Engine with run configuration 'local'
+2026/09/18 21:05:48 - silver_quarantine_split - Execution started for pipeline [silver_quarantine_split]
+2026/09/18 21:05:48 - ler bronze.0 - Header row skipped in file '/home/ficdevia-15-noite/Área de trabalho/libia/dados_python/aula18/repository/bronze/meteorologia_bronze.csv'
+2026/09/18 21:05:48 - ler bronze.0 - Finished processing (I=14, O=0, R=0, W=13, U=0, E=0)
+2026/09/18 21:05:48 - ordenar por estacao e hora.0 - Finished processing (I=0, O=0, R=13, W=13, U=0, E=0)
+2026/09/18 21:05:48 - avaliar qualidade.0 - Finished processing (I=0, O=0, R=13, W=26, U=0, E=0)
+2026/09/18 21:05:48 - filtrar silver.0 - Finished processing (I=0, O=0, R=13, W=6, U=0, E=0)
+2026/09/18 21:05:48 - colunas silver.0 - Finished processing (I=0, O=0, R=6, W=6, U=0, E=0)
+2026/09/18 21:05:48 - filtrar quarentena.0 - record_quarantined estacao=Rio de Janeiro timestamp=Fri Sep 18 02:00:00 AMT 2026 motivo=missing_above_30_percent
+2026/09/18 21:05:48 - filtrar quarentena.0 - record_quarantined estacao=Rio de Janeiro timestamp=Fri Sep 18 03:00:00 AMT 2026 motivo=missing_above_30_percent
+2026/09/18 21:05:48 - filtrar quarentena.0 - record_quarantined estacao=Sao Paulo timestamp=Fri Sep 18 00:00:00 AMT 2026 motivo=constant_temperature_over_4_hours
+2026/09/18 21:05:48 - filtrar quarentena.0 - record_quarantined estacao=Sao Paulo timestamp=Fri Sep 18 01:00:00 AMT 2026 motivo=constant_temperature_over_4_hours
+2026/09/18 21:05:48 - gravar silver.0 - Finished processing (I=0, O=7, R=6, W=6, U=0, E=0)
+2026/09/18 21:05:48 - filtrar quarentena.0 - record_quarantined estacao=Sao Paulo timestamp=Fri Sep 18 02:00:00 AMT 2026 motivo=constant_temperature_over_4_hours
+2026/09/18 21:05:48 - filtrar quarentena.0 - record_quarantined estacao=Sao Paulo timestamp=Fri Sep 18 03:00:00 AMT 2026 motivo=constant_temperature_over_4_hours
+2026/09/18 21:05:48 - filtrar quarentena.0 - record_quarantined estacao=Sao Paulo timestamp=Fri Sep 18 04:00:00 AMT 2026 motivo=constant_temperature_over_4_hours
+2026/09/18 21:05:48 - filtrar quarentena.0 - Finished processing (I=0, O=0, R=13, W=7, U=0, E=0)
+2026/09/18 21:05:48 - gravar quarentena.0 - Finished processing (I=0, O=8, R=7, W=7, U=0, E=0)
+2026/09/18 21:05:48 - silver_quarantine_split - Pipeline duration : 0.149 seconds [  0.149" ]
+2026/09/18 21:05:48 - silver_quarantine_split - Execution finished on a local pipeline engine with run configuration 'local'

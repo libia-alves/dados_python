@@ -1,0 +1,176 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<workflow>
+  <name>main_weather_quality</name>
+  <name_sync_with_filename>Y</name_sync_with_filename>
+  <description>Orquestra a ingestao das duas fontes meteorologicas (camada bronze) e depois a checagem de qualidade que separa silver de quarentena. Cada acao PIPELINE grava seu proprio log de execucao em logs/ e, se falhar, segue o ramo vermelho ate uma acao "registrar erro" que grava o problema no log do workflow.</description>
+  <extended_description/>
+  <workflow_version/>
+  <created_user>-</created_user>
+  <created_date>2026/09/18 00:00:00.000</created_date>
+  <modified_user>-</modified_user>
+  <modified_date>2026/09/18 00:00:00.000</modified_date>
+  <parameters>
+    <parameter>
+      <name>RAW_DIR</name>
+      <default_value>${PROJECT_HOME}/data/raw</default_value>
+      <description>Pasta das fontes brutas (CSV)</description>
+    </parameter>
+    <parameter>
+      <name>BRONZE_DIR</name>
+      <default_value>${PROJECT_HOME}/repository/bronze</default_value>
+      <description>Pasta da camada bronze. Mude ao migrar de ambiente (dev/teste/producao).</description>
+    </parameter>
+    <parameter>
+      <name>SILVER_DIR</name>
+      <default_value>${PROJECT_HOME}/repository/silver</default_value>
+      <description>Pasta da camada silver. Mude ao migrar de ambiente (dev/teste/producao).</description>
+    </parameter>
+    <parameter>
+      <name>QUARANTINE_DIR</name>
+      <default_value>${PROJECT_HOME}/repository/quarantine</default_value>
+      <description>Pasta de quarentena. Mude ao migrar de ambiente (dev/teste/producao).</description>
+    </parameter>
+    <parameter>
+      <name>LOG_DIR</name>
+      <default_value>${PROJECT_HOME}/logs</default_value>
+      <description>Pasta dos logs de execucao (registro de erros e problemas do workflow)</description>
+    </parameter>
+  </parameters>
+  <actions>
+    <action>
+      <name>Start</name>
+      <description/>
+      <type>SPECIAL</type>
+      <attributes/>
+      <DayOfMonth>1</DayOfMonth>
+      <hour>12</hour>
+      <intervalMinutes>60</intervalMinutes>
+      <intervalSeconds>0</intervalSeconds>
+      <minutes>0</minutes>
+      <repeat>N</repeat>
+      <schedulerType>0</schedulerType>
+      <weekDay>1</weekDay>
+      <parallel>N</parallel>
+      <xloc>32</xloc>
+      <yloc>112</yloc>
+      <attributes_hac/>
+    </action>
+    <action>
+      <name>ingestao bronze</name>
+      <description/>
+      <type>PIPELINE</type>
+      <attributes/>
+      <add_date>N</add_date>
+      <add_time>N</add_time>
+      <clear_files>N</clear_files>
+      <clear_rows>N</clear_rows>
+      <create_parent_folder>Y</create_parent_folder>
+      <exec_per_row>N</exec_per_row>
+      <filename>${PROJECT_HOME}/pipelines/bronze_ingest.hpl</filename>
+      <logext>log</logext>
+      <logfile>${LOG_DIR}/bronze_ingest</logfile>
+      <loglevel>Basic</loglevel>
+      <parameters>
+        <pass_all_parameters>Y</pass_all_parameters>
+      </parameters>
+      <params_from_previous>N</params_from_previous>
+      <run_configuration>local</run_configuration>
+      <set_append_logfile>N</set_append_logfile>
+      <set_logfile>Y</set_logfile>
+      <wait_until_finished>Y</wait_until_finished>
+      <parallel>N</parallel>
+      <xloc>208</xloc>
+      <yloc>112</yloc>
+      <attributes_hac/>
+    </action>
+    <action>
+      <name>checar qualidade e separar silver e quarentena</name>
+      <description/>
+      <type>PIPELINE</type>
+      <attributes/>
+      <add_date>N</add_date>
+      <add_time>N</add_time>
+      <clear_files>N</clear_files>
+      <clear_rows>N</clear_rows>
+      <create_parent_folder>Y</create_parent_folder>
+      <exec_per_row>N</exec_per_row>
+      <filename>${PROJECT_HOME}/pipelines/silver_quarantine_split.hpl</filename>
+      <logext>log</logext>
+      <logfile>${LOG_DIR}/silver_quarantine_split</logfile>
+      <loglevel>Basic</loglevel>
+      <parameters>
+        <pass_all_parameters>Y</pass_all_parameters>
+      </parameters>
+      <params_from_previous>N</params_from_previous>
+      <run_configuration>local</run_configuration>
+      <set_append_logfile>N</set_append_logfile>
+      <set_logfile>Y</set_logfile>
+      <wait_until_finished>Y</wait_until_finished>
+      <parallel>N</parallel>
+      <xloc>432</xloc>
+      <yloc>112</yloc>
+      <attributes_hac/>
+    </action>
+    <action>
+      <name>registrar erro ingestao</name>
+      <description/>
+      <type>WRITE_TO_LOG</type>
+      <attributes/>
+      <loglevel>Error</loglevel>
+      <displaySubject>Y</displaySubject>
+      <subject>Falha no workflow ${Internal.Workflow.Name}</subject>
+      <logmessage>A pipeline bronze_ingest.hpl falhou. Verifique ${LOG_DIR}/bronze_ingest.log para o detalhe do erro (linhas invalidas descartadas ou problema de arquivo/fonte).</logmessage>
+      <parallel>N</parallel>
+      <xloc>208</xloc>
+      <yloc>272</yloc>
+      <attributes_hac/>
+    </action>
+    <action>
+      <name>registrar erro qualidade</name>
+      <description/>
+      <type>WRITE_TO_LOG</type>
+      <attributes/>
+      <loglevel>Error</loglevel>
+      <displaySubject>Y</displaySubject>
+      <subject>Falha no workflow ${Internal.Workflow.Name}</subject>
+      <logmessage>A pipeline silver_quarantine_split.hpl falhou. Verifique ${LOG_DIR}/silver_quarantine_split.log para o detalhe do erro.</logmessage>
+      <parallel>N</parallel>
+      <xloc>432</xloc>
+      <yloc>272</yloc>
+      <attributes_hac/>
+    </action>
+  </actions>
+  <hops>
+    <hop>
+      <from>Start</from>
+      <to>ingestao bronze</to>
+      <enabled>Y</enabled>
+      <evaluation>Y</evaluation>
+      <unconditional>Y</unconditional>
+    </hop>
+    <hop>
+      <from>ingestao bronze</from>
+      <to>checar qualidade e separar silver e quarentena</to>
+      <enabled>Y</enabled>
+      <evaluation>Y</evaluation>
+      <unconditional>N</unconditional>
+    </hop>
+    <hop>
+      <from>ingestao bronze</from>
+      <to>registrar erro ingestao</to>
+      <enabled>Y</enabled>
+      <evaluation>N</evaluation>
+      <unconditional>N</unconditional>
+    </hop>
+    <hop>
+      <from>checar qualidade e separar silver e quarentena</from>
+      <to>registrar erro qualidade</to>
+      <enabled>Y</enabled>
+      <evaluation>N</evaluation>
+      <unconditional>N</unconditional>
+    </hop>
+  </hops>
+  <notepads>
+  </notepads>
+  <attributes/>
+</workflow>
